@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use ::std::collections::HashMap;
+use std::fmt::format;
 
 
 trait Weight {
@@ -86,9 +87,8 @@ impl<'a> Person{
     }
 
     fn send_current_weight(&self, channel: CommChannel) {
-        let weight_in_kg = self.get_weight_in_kg();
-        let weight_in_lb = self.get_weight_in_lb();
-        let message = format!("Your current weight is {}kg {}lb", weight_in_kg, weight_in_lb);
+        let weight = self.get_weight();
+        let message = format!("Your current weight is {}", weight);
         match channel {
             CommChannel::Email => self.send_email(message.as_str()),
             CommChannel::Sms => self.send_sms(message.as_str()),
@@ -104,17 +104,17 @@ impl<'a> Person{
         self.email = new_email;
     }
 
-    fn get_weight_in_kg(&self) -> f32{
+    fn get_weight(&self) -> String{
         match self.weight {
-            WeightType::Kg(ref weight) => weight.to_kg(),
-            WeightType::Lb(ref weight) => weight.to_kg()
+            WeightType::Kg(ref weight) => format!("{} kg", weight.to_kg()),
+            WeightType::Lb(ref weight) => format!("{} lb", weight.to_lb()),
         }
     }
 
-    fn get_weight_in_lb(&self) -> f32{
+    fn convert_weight_system(&mut self) {
         match self.weight {
-            WeightType::Kg(ref weight) => weight.to_lb(),
-            WeightType::Lb(ref weight) => weight.to_lb()
+            WeightType::Kg(ref weight) => self.weight = WeightType::Lb(LbWeight { lb: weight.to_lb() }),
+            WeightType::Lb(ref weight) => self.weight = WeightType::Kg(KgWeight { kg: weight.to_kg() })
         }
     }
 
